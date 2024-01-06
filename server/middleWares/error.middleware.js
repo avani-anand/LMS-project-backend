@@ -1,3 +1,5 @@
+import AppError from "../utils/error.utils.js";
+
 const errorMiddleware= (err,req,res,next)=>{
 
     // niche bta rhe h ki agar "user.controller.js" se status code na aae to kya kre aur message na aae to kya kre

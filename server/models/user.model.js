@@ -1,6 +1,6 @@
-import { Schema,model } from "mongoose";
+import { Schema,model } from 'mongoose';
 import bcrypt from "bcryptjs"
-import { Jwt } from "jsonwebtoken";
+import  Jwt  from "jsonwebtoken";
 
 
 const userSchema = new Schema({
@@ -13,17 +13,17 @@ const userSchema = new Schema({
         lowercas:true,
         trim: true,
     },
-    email:{
-
-        type:'String',
-        require: [true,'email is required'],
-        lowercas:true,
-        trim: true,
-        unique:true,
-        match:['^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$','please fill in a valid email address']
-
-    },
-    password:{
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        match: [
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+          'Please fill in a valid email address',
+        ], // Matches email against regex
+      },
+          password:{
         type:'String',
         require: [true,'password is required'],
         minLenght :[8,'password must be at least 8 char'],
@@ -60,7 +60,7 @@ userSchema.pre('save',async function(next){
 
 userSchema.methods={
     generateJWTToken:async function(){
-        return await jwt.sign(
+        return await Jwt.sign(
 
             {id:this._id, email:this.email, subscription:this.subscription ,role: this.role},
             process.env.JWT_SECRET,
@@ -68,7 +68,13 @@ userSchema.methods={
                 expiresIn:process.env.JWT_EXPIRY,
             }
             )
+    },
+
+    comparePassword:async function(plainTextPassword){
+
+        return await bcrypt.compare(plainTextPassword,this.password)
     }
+
 }
 
 

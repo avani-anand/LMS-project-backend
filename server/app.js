@@ -1,13 +1,18 @@
 import express from 'express'
+// config();
+
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan'
-import userRoutes  from './routes/user.routes'
-import errorMiddleware from './middleWares/error.middleware';
+import userRoutes  from './routes/user.routes.js'
+import errorMiddleware from './middleWares/error.middleware.js';
+// import AppError from './utils/error.utils.js';
 
 const app= express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use(cors({
     origin:[process.env.FRONTEND_URL],

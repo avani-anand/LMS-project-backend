@@ -1,6 +1,6 @@
 class AppError extends Error{
     constructor(message,statusCode){
-        super(message);
+        super(message);  //'super' keyword is used in the context of classes and extends the functionality of the 'this' keyword
 
         this.statusCode=statusCode;
 
