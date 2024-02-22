@@ -4,7 +4,7 @@ class AppError extends Error{
 
         this.statusCode=statusCode;
 
-        Error.captureStackTrace(this.constructor);   //"captureStackTrace" ek error object method hai, jo ki error stack trace ko capture karne mein madad karta hai.
+        Error.captureStackTrace(this ,this.constructor);   //"captureStackTrace" ek error object method hai, jo ki error stack trace ko capture karne mein madad karta hai.
     }
 }
 

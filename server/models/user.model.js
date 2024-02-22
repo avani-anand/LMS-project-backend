@@ -60,14 +60,14 @@ userSchema.pre('save',async function(next){
 
 userSchema.methods={
     generateJWTToken:async function(){
-        return await Jwt.sign(
+        return Jwt.sign(
 
-            {id:this._id, email:this.email, subscription:this.subscription ,role: this.role},
+            { id: this._id, email: this.email, subscription: this.subscription, role: this.role },
             process.env.JWT_SECRET,
             {
-                expiresIn:process.env.JWT_EXPIRY,
+                expiresIn: process.env.JWT_EXPIRY,
             }
-            )
+        )
     },
 
     comparePassword:async function(plainTextPassword){

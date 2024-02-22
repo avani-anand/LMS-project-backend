@@ -1,16 +1,22 @@
+import fs from 'fs/promises';
+
+
 import User  from "../models/user.model.js";
 import cookie from "cookie-parser"
 import AppError from '../utils/error.utils.js';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+import cloudinary from 'cloudinary';
+
+
 
 
 const cookieOptions={
-    maxAge: 7*24*60*60*1000,
+    maxAge: 7*24*60*60*1000,  //7 days
     httpOnly:true,
     secure:true
 }
 
-const register =async (req,res)=>{
+const register =async (req,res,next)=>{
     const {fullName,email,password}= req.body;
 
     if(!fullName || !email || !password){
@@ -53,6 +59,50 @@ const register =async (req,res)=>{
 
     
     // to do : file upload--------------------------------------------
+
+    // yha hume profile  avatar ki file multer.middleware.js se milega 
+
+    if (req.file) {
+        console.log(req.file);   // to see file in our console
+        try {
+            const result = await cloudinary.v2.uploader.upload(req.file.path,{
+                folder:'LMS project backend',
+                width:250,
+                height:250,
+                gravity:'faces',
+                crop:'fill'
+            });
+            if (result) {
+                user.avatar.public_id=result.public_id;
+                user.avatar.secure_url=result.secure_url;
+
+
+                //removing file from server ---because after uploading we remove file from server
+                fs.rm(`uploads/ ${req.file.filename}`)
+                
+            }
+            
+        } catch (e) {
+            return next (
+                new AppError (e || 'file not uploaded , please try again',500)
+            )
+            
+        }
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    
     await user.save();  //ab save kr denge user ko
     
     user.password=undefined;
@@ -66,7 +116,7 @@ const register =async (req,res)=>{
     res.status(201).json({
         success: true,
         message:'user registered succesfully',
-        user
+        user,
 
     });
 };
@@ -93,7 +143,9 @@ const login =async (req,res)=>{
         }
     
         const token= await user.generateJWTToken();
-        user.password=undefined
+        user.password=undefined;
+
+        res.cookie('token', token ,cookieOptions)
     
         res.status(200).json({
             success:true,
