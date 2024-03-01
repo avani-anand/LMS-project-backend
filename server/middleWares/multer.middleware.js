@@ -1,16 +1,23 @@
+// we make this file for middle ware it check whenever a file is uploaded at server then it convert into binary and make and upload/give it to user.controller.js file ko and then he got it from req.file 
+
 import path from "path";
 
 import multer  from  'multer'
-const upload = multer({ dest: 'uploads/',
-limits: {fileSize:50*1024*1024},    //50 mb in size max limit
-storage:multer.diskStorage({
-    destination:"uploads/",      // hmara picture uploads file m store hone vala h
-    filename:(_req , file,cb)=>{
-        cb(null,file.originalname);  // file ka original jo name h usi name se yha p uploads file m store hone vali h
-    },
-}),
-fileFilter:(_req,file,cb)=>{      
-    let ext = path.extname(file.originalname);
+
+const upload = multer({ 
+    dest: 'uploads/',
+    limits: {fileSize:50*1024*1024},    //50 mb in size max limit
+    storage:multer.diskStorage({
+        destination:"uploads/",      // hmara picture uploads file m store hone vala h
+        filename:(_req , file,cb)=>{
+            cb(null,file.originalname);  // file ka original jo name h usi name se yha p uploads file m store hone vali h
+        },
+    }),
+    fileFilter:(_req,file,cb)=>{      
+        let ext = path.extname(file.originalname);
+
+
+
 // file k filtration ki konsa konsa file hum accept krenge avatr k pic m
     if(
         ext !== ".jpg" && 
@@ -18,7 +25,7 @@ fileFilter:(_req,file,cb)=>{
         ext !== ".webp" && 
         ext !== ".mp4"  
     ) {
-        cb(new Error (`unsupported file type ! ${text}`),false);
+        cb(new Error (`unsupported file type ! ${ext}`),false);
         return;
     }
     cb(null,true);

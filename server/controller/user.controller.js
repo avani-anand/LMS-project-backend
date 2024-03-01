@@ -33,7 +33,7 @@ const register =async (req,res,next)=>{
     const userExist = await User.findOne({ email });
         
         if (userExist) {
-            return next (new AppError('email already exist'))
+            return next (new AppError('email already exist',409))
         }    
         
 
@@ -60,32 +60,33 @@ const register =async (req,res,next)=>{
     
     // to do : file upload--------------------------------------------
 
-    // yha hume profile  avatar ki file multer.middleware.js se milega 
+    //these below code run only when user uploaded a file yha hume profile  avatar ki file multer.middleware.js se milega 
 
+    console.log('file details >', JSON.stringify(req.file));
     if (req.file) {
-        console.log(req.file);   // to see file in our console
+        // console.log(req.file);   // to see file in our console
         try {
             const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:'LMS project backend',
+                folder:'LMS-project-backend',
                 width:250,
                 height:250,
                 gravity:'faces',
                 crop:'fill'
             });
-            if (result) {
+            if (result) {         //jb file upload ho jaega to yha hum id aur secure URL change kr denge kyuki phle se dummy avatar diye hue h agar koe avatar na dale to dummy vala hi rh jaega
                 user.avatar.public_id=result.public_id;
                 user.avatar.secure_url=result.secure_url;
 
 
                 //removing file from server ---because after uploading we remove file from server
-                fs.rm(`uploads/ ${req.file.filename}`)
+                fs.rm(`uploads/ ${req.file.filename}`) 
                 
             }
             
         } catch (e) {
             return next (
-                new AppError (e || 'file not uploaded , please try again',500)
-            )
+                new AppError (e || 'file not uploaded , please try again',400)
+            );
             
         }
         
@@ -105,11 +106,13 @@ const register =async (req,res,next)=>{
     
     await user.save();  //ab save kr denge user ko
     
+  
+    //ab user register ho gya to usko vpas se login krne ko to bolenge ni register kiya means vo login ho chuka h iske liye jwt token generate krenge
+    const token=await user.generateJWTToken();
+
     user.password=undefined;
     
     
-    //ab user register ho gya to usko vpas se login krne ko to bolenge ni register kiya means vo login ho chuka h iske liye jwt token generate krenge
-    const token=await user.generateJWTToken();
 
     res.cookie('token',token,cookieOptions)
     
@@ -171,9 +174,13 @@ const login =async (req,res)=>{
 
 
 
+// .......................................................................
 
-
-
+/**
+ * @LOGOUT
+ * @ROUTE @POST {{URL}}/api/v1/user/logout
+ * @ACCESS Public
+ */
 
 
 
@@ -198,9 +205,14 @@ const logout = (req,res)=>{
 
 
 
+// .......................................................................
 
 
-
+/**
+ * @LOGGED_IN_USER_DETAILS
+ * @ROUTE @GET {{URL}}/api/v1/user/me
+ * @ACCESS Private(Logged in users only)
+ */
 
 
 
