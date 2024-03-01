@@ -1,4 +1,4 @@
-import { Schema,model } from 'mongoose';
+import mongoose, { Schema,model } from 'mongoose';
 import bcrypt from "bcryptjs"
 import  Jwt  from "jsonwebtoken";
 
@@ -6,7 +6,7 @@ import  Jwt  from "jsonwebtoken";
 const userSchema = new Schema({
 
     fullName:{
-        type:'String',
+        type:String,
         require: [true,'name is required'],
         minLenght :[5,'name must be 5 char'],
         maxLenght :[10,'name less than  10 char'],
@@ -49,36 +49,42 @@ const userSchema = new Schema({
 
 
 
-//yha bta rhe h kiuser details save hone se phle ye function run ho aur iss function m hum pswrd ko hash pswrd m change krenge
+//yha bta rhe h ki user details save hone se phle ye function run ho aur iss function m hum pswrd ko hash pswrd m change krenge
 userSchema.pre('save',async function(next){
-    if (!this.isModified('password')) {
+    if (!this.isModified('password')) 
         return next();
-    }
+    
     this.password=await bcrypt.hash(this.password,10)
+    return next();
 });
 
 
 userSchema.methods={
+    comparePassword:async function(plainTextPassword){
+
+        return await bcrypt.compare(plainTextPassword,this.password)
+    },
+
+
+
     generateJWTToken:async function(){
         return Jwt.sign(
 
             { id: this._id, email: this.email, subscription: this.subscription, role: this.role },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRY,
-            }
-        )
+            process.env.JWT_SECRET, // error coming from here
+            { expiresIn: process.env.JWT_EXPIRY }
+        );
     },
 
-    comparePassword:async function(plainTextPassword){
+    // comparePassword:async function(plainTextPassword){
 
-        return await bcrypt.compare(plainTextPassword,this.password)
+    //     return await bcrypt.compare(plainTextPassword,this.password)
     }
 
-}
 
 
 
-const User=model('User',userSchema)
+
+const User=mongoose. model('User',userSchema)       // mongoose.       changing here
 
 export default User;

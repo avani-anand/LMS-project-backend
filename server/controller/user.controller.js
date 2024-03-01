@@ -47,8 +47,8 @@ const register =async (req,res,next)=>{
         password,
         avatar:{
             public_id:email,
-            secure_url:'https://cloudinary-marketing-res.cloudinary.com/image/upload/ar_0.5,c_fill,g_auto,w_433/q_auto/f_auto/hiking_dog_mountain.jpg'
-        },
+            secure_url:
+            'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',        },
     });
     
     if(!user){
@@ -62,46 +62,33 @@ const register =async (req,res,next)=>{
 
     //these below code run only when user uploaded a file yha hume profile  avatar ki file multer.middleware.js se milega 
 
-    console.log('file details >', JSON.stringify(req.file));
+    // console.log('file details >', JSON.stringify(req.file));
     if (req.file) {
         // console.log(req.file);   // to see file in our console
         try {
             const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:'LMS-project-backend',
+                folder:'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
                 width:250,
                 height:250,
                 gravity:'faces',
                 crop:'fill'
             });
             if (result) {         //jb file upload ho jaega to yha hum id aur secure URL change kr denge kyuki phle se dummy avatar diye hue h agar koe avatar na dale to dummy vala hi rh jaega
-                user.avatar.public_id=result.public_id;
-                user.avatar.secure_url=result.secure_url;
+                user.avatar.public_id =result.public_id;
+                user.avatar.secure_url = result.secure_url;
 
 
                 //removing file from server ---because after uploading we remove file from server
-                fs.rm(`uploads/ ${req.file.filename}`) 
                 
+                // fs.rm(`uploads/ ${req.file.filename}`) 
             }
-            
-        } catch (e) {
-            return next (
-                new AppError (e || 'file not uploaded , please try again',400)
-            );
-            
+        } catch (error) {
+          return next(
+            new AppError(error || 'File not uploaded, please try again', 400)
+          );
         }
-        
-    }
-
-
-
-
-
-
-
-
-
-
-
+      }
+    
 
     
     await user.save();  //ab save kr denge user ko
@@ -111,7 +98,6 @@ const register =async (req,res,next)=>{
     const token=await user.generateJWTToken();
 
     user.password=undefined;
-    
     
 
     res.cookie('token',token,cookieOptions)
@@ -128,7 +114,7 @@ const register =async (req,res,next)=>{
 
 // -----------------------------------------------------------------------------------------
 
-const login =async (req,res)=>{
+const login =async (req,res,next)=>{
 
     try {
         const {email,password}=req.body;
