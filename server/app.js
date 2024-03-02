@@ -6,12 +6,12 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan'
 import userRoutes  from './routes/user.routes.js'
 import errorMiddleware from './middleWares/error.middleware.js';
-// import AppError from './utils/error.utils.js';
+import AppError from './utils/error.utils.js';
 
 const app= express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));// query params m jo aa rha h usko decode krne k liye jaise query params m hume URL mila tha
 
 
 app.use(cors({

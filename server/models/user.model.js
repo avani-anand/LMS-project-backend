@@ -1,6 +1,7 @@
 import mongoose, { Schema,model } from 'mongoose';
 import bcrypt from "bcryptjs"
 import  Jwt  from "jsonwebtoken";
+import crypto from 'crypto';
 
 
 const userSchema = new Schema({
@@ -60,13 +61,6 @@ userSchema.pre('save',async function(next){
 
 
 userSchema.methods={
-    comparePassword:async function(plainTextPassword){
-
-        return await bcrypt.compare(plainTextPassword,this.password)
-    },
-
-
-
     generateJWTToken:async function(){
         return Jwt.sign(
 
@@ -76,9 +70,21 @@ userSchema.methods={
         );
     },
 
-    // comparePassword:async function(plainTextPassword){
+    comparePassword:async function(plainTextPassword){
 
-    //     return await bcrypt.compare(plainTextPassword,this.password)
+        return await bcrypt.compare(plainTextPassword,this.password)
+    },
+
+    generatePasswordResetToken : async function(){
+        const resetToken= crypto.randomBytes(20).toString('hex');    //ye sb predefined methods h jo ki reset pswrd k liye use hote h yha hum 20 bytes ka token bnanege 
+    
+        this.forgotPasswordToken=crypto.createHash('sha256').update(resetToken).digest('hex'); //   encrypt krne k liye createHash('sha256') ye algorithm use kiye h  aur update krne k liye "update(resetToken) " use kiye h         //yha hmlog direct "resetToken" aise v likh denge to pswrd reset ho jaega par hum crptyo se encrypt kreke dalenge
+        this.forgotPasswordExpiry= Date.now()+15*60*1000; // 15 min from now
+    
+        return resetToken ;  //hume url m ye vala vejna h encryption vala ni vejna h isliye "resetToken "return kr rhe h encrypted bad m use krenge
+      }
+
+
     }
 
 

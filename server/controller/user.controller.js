@@ -6,8 +6,8 @@ import cookie from "cookie-parser"
 import AppError from '../utils/error.utils.js';
 import jwt from 'jsonwebtoken';
 import cloudinary from 'cloudinary';
-
-
+import sendEmail from '../utils/sendEmail.js';
+import crypto from 'crypto'
 
 
 const cookieOptions={
@@ -15,6 +15,14 @@ const cookieOptions={
     httpOnly:true,
     secure:true
 }
+
+
+/**
+ * @REGISTER
+ * @ROUTE @POST {{URL}}/api/v1/user/register
+ * @ACCESS Public
+ */
+
 
 const register =async (req,res,next)=>{
     const {fullName,email,password}= req.body;
@@ -57,8 +65,7 @@ const register =async (req,res,next)=>{
     
 
 
-    
-    // to do : file upload--------------------------------------------
+    //profile pic uploading
 
     //these below code run only when user uploaded a file yha hume profile  avatar ki file multer.middleware.js se milega 
 
@@ -111,8 +118,15 @@ const register =async (req,res,next)=>{
 };
 
 
-
 // -----------------------------------------------------------------------------------------
+
+/**
+ * @LOGIN
+ * @ROUTE @POST {{URL}}/api/v1/user/login
+ * @ACCESS Public
+ */
+
+
 
 const login =async (req,res,next)=>{
 
@@ -123,15 +137,20 @@ const login =async (req,res,next)=>{
             return next(new AppError('all fields are required',400));
     
         }
-        const user=await User.findOne({
-            email
-        }).select('+password')
+        const user = await User.findOne({ email }).select('+password');
+
         
-        if(! user || !user.comparePassword (password)){
-            return next (new AppError('email or password does not match ',400))
-        }
-    
+  // If no user or sent password do not match then send generic response
+  if (!(user && (await user.comparePassword(password)))) {
+    return next(
+      new AppError('Email or Password do not match or user does not exist', 401)
+    );
+  }
+  // Generating a JWT token
+
         const token= await user.generateJWTToken();
+// Setting the password to undefined so it does not get sent in the response
+
         user.password=undefined;
 
         res.cookie('token', token ,cookieOptions)
@@ -222,9 +241,112 @@ const getprofile =async (req,res)=>{
     }
 
 }
+ //-----------------------------------------------------------------------------------------------
+/**
+ * @FORGOT_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/reset
+ * @ACCESS Public
+ */
+
+const forgotPassword= async (req, res,next)=>{
+const {email} = req.body;
+
+if (!email) {
+    return next(new AppError('email is required', 400));
+}
+
+const user = await User.findOne({email});
+if (!user) {
+    return next(new AppError('email is not registered',400))
+}
+const resetToken = await user.generatePasswordResetToken();
+ 
+await user.save();
+
+const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+
+console.log( " aisa hi url jaega email p reset krne k liye password >",resetPasswordUrl);  //ye terminal p print hoga avi .....ab iss url ko hum reset pswrd m access krke pswrd reset krenge
+
+const subject = 'reset password';
+const message= `you can reseet your password by clicking <a href=${resetPasswordUrl} target="_blank> reset your password </a> \n if the abovev link does not work then copy paste this link in new tab ${resetPasswordUrl} \n . if you not requested this kindly ignore this`
+
+try{
+    await sendEmail(email, subject,message);
+
+    res.status(200).json({
+        success: true,
+        message:`reset password token has been sent to ${email} successfully`
+    })
+}
+catch(e){
+//agar kuch vjah se forget krte time email fat gya email p koe link ni gya to dono ko undefined kr denge
+    user.forgotPasswordExpiry=undefined;
+    user.forgotPasswordToken=undefined;
+
+    await user.save();  // server to token veja j par email p gya ni h agar dusri bar user try krna chega to server jo token veja h vo 15 min bad hi vejga isliye phle vje gae token ko save kr liye taki use kr ske
+
+    return next(new AppError(e.message || 'Something went wrong, please try again.',500))
+
+}
+
+}
+
+//----------------------------------------------------------------------
+/**
+ * @RESET_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/reset/:resetToken
+ * @ACCESS Public
+ */
+
+
+
+ //reset pswrd k liye hum jo hume link mila h params(parameter) m email p uska use krenge yha usko automatic reset/password URL k sath jod denge
+const resetpassword= async(req,res,next)=>{
+
+    const {resetToken}=req.params; //sbse phle jo URL(email p jo aya tha) params m mil h vo le lenge
+
+    const{ password}= req.body; //pswrd user dega body se lenge change krne k lye
+  
+    const forgotPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex') //vps se token ko encrypt krke save krenge
+
+      // Check if password is not there then send response saying password is required
+
+    if (!password) {
+        return next(new AppError('Password is required', 400));
+      }
+    
+      console.log(forgotPasswordToken);
+
+        // Checking if token matches in DB and if it is still valid(Not expired)
+
+    const user = await User.findOne({
+        forgotPasswordToken,
+        forgotPasswordExpiry : {$gt:Date.now()} //ab yha check krenge jo forgotpswrd ka token avi se greater h ya nhi h mtlb token ka time h n avi $gt ka mtlb greater
+    })
+
+
+  // If not found or expired send the response
+  if (!user) {
+        return next(
+            new AppError('token is expired or invalid ,please try again',400)
+        )
+    }
+    //agar user ka forgotPasswordToken ya forgotPasswordExpiry   ho to baki ko undefined krke db m save kr denge
+    user.password= password;
+    user.forgotPasswordToken=undefined;
+    user.forgotPasswordExpiry= undefined;
+
+
+    user.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'password changed succesfully !'
+    })
+}
 
 
 
 export {
-    register,login,logout,getprofile
+    register,login,logout,getprofile,forgotPassword,resetpassword
 }
