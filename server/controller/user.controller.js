@@ -345,8 +345,61 @@ const resetpassword= async(req,res,next)=>{
     })
 }
 
+// --------------------------------------------------------------------
+//@change password
+
+
+const changePassword =async (req,res,next)=>{
+    const{id}= req.user.id; 
+
+    const {oldPassword ,newPassword}=req.body
+
+    if (!oldPassword || !newPassword) {
+        return next (
+            new AppError ('all fileds are mandotary', 400)
+        )
+    }
+
+    const user = await User.findById(id).select('+password');
+
+    if (!user) {
+        return next (
+            new AppError ('token is invalid or expired , please try again', 400)
+        )
+    }
+
+    const isPasswordvalid= await user.comparePassword(oldPassword);
+
+    if (!isPasswordvalid) {
+        return next(
+            new AppError ('invalid old password',400)
+        )
+    }
+    user.password=newPassword;
+    await user.save();
+    user.password= undefined
+
+    res.status(200).json({
+        success: true,
+        message: "password changed succesfully !"
+    });
+
+}
+
+// -----------------------------------------------------------------------------------
+
+// @update
+
+
+const updateUser =(req,res)=>{
+
+    const {fullName}=req.body;
+    const{id}= req.user.id;   //user ki id hume req.user.id se mil jaegi
+
+}
+
 
 
 export {
-    register,login,logout,getprofile,forgotPassword,resetpassword
+    register,login,logout,getprofile,forgotPassword,resetpassword,changePassword, updateUser
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { forgotPassword, getprofile, login, logout, register, resetpassword } from "../controller/user.controller.js";
+import { changePassword,forgotPassword, getprofile, login, logout, register, resetpassword, updateUser } from "../controller/user.controller.js";
 import isLoggedIn from "../middleWares/auth.middleware.js";
 import upload from "../middleWares/multer.middleware.js";
 
@@ -11,7 +11,8 @@ router.get('/logout',logout)  //isme .get method use krne se ye fayda h ki  agar
 router.get('/me',isLoggedIn,getprofile);
 router.post('/reset',forgotPassword);
 router.post("/reset/:resetToken",resetpassword);
-
+router.post('/change-password',isLoggedIn,changePassword);
+router.put('/update/:id',isLoggedIn,upload.single("avatar"),updateUser); //put method is used for update
 
 export default router;
 
