@@ -346,7 +346,11 @@ const resetpassword= async(req,res,next)=>{
 }
 
 // --------------------------------------------------------------------
-//@change password
+/**
+ * @CHANGE_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/change-password
+ * @ACCESS Private (Logged in users only)
+ */
 
 
 const changePassword =async (req,res,next)=>{
@@ -375,8 +379,13 @@ const changePassword =async (req,res,next)=>{
             new AppError ('invalid old password',400)
         )
     }
+      // Setting the new password
     user.password=newPassword;
+
+      // Save the data in DB
     await user.save();
+
+      // Setting the password undefined so that it won't get sent in the response
     user.password= undefined
 
     res.status(200).json({
@@ -387,14 +396,65 @@ const changePassword =async (req,res,next)=>{
 }
 
 // -----------------------------------------------------------------------------------
+/**
+ * @UPDATE_USER
+ * @ROUTE @POST {{URL}}/api/v1/user/update/:id
+ * @ACCESS Private (Logged in user only)
+ */
 
-// @update
-
-
-const updateUser =(req,res)=>{
+const updateUser = async(req,res)=>{
 
     const {fullName}=req.body;
     const{id}= req.user.id;   //user ki id hume req.user.id se mil jaegi
+
+    const user= await User.findById(id);
+
+    if(!user){
+        return next(
+            new AppError('user dose not exist', 400)
+        )
+    }
+
+    if (req.fullName) {
+
+        user.fullName=fullName;
+        
+    }
+
+    if (req.file) {
+        await cloudinary.v2.uploader.destroy(user.avatar.public_id) ;//if user also update profile pic then we destroy the previous profile pic and update with new 
+        
+        //jaise register flow m profile dale the vhi code yha p v likhenge
+        try {
+            const result = await cloudinary.v2.uploader.upload(req.file.path,{
+                folder:'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
+                width:250,
+                height:250,
+                gravity:'faces',
+                crop:'fill'
+            });
+            if (result) {         //jb file upload ho jaega to yha hum id aur secure URL change kr denge kyuki phle se dummy avatar diye hue h agar koe avatar na dale to dummy vala hi rh jaega
+                user.avatar.public_id =result.public_id;
+                user.avatar.secure_url = result.secure_url;
+
+
+                //removing file from server ---because after uploading we remove file from server
+                
+                // fs.rm(`uploads/ ${req.file.filename}`) 
+            }
+        } catch (error) {
+          return next(
+            new AppError(error || 'File not uploaded, please try again', 400)
+          );
+        }
+    }
+
+
+    await user.save();
+    res.status(200).json({
+        success: true,
+        message:'user details updated succesfully'
+    })
 
 }
 
