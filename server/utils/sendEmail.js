@@ -11,8 +11,7 @@ const sendEmail= async function (email,subject,message){
     let  transporter= nodemailer.createTransport({
         host:process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
-        secure:false,  //true for 465 , false for other ports
-
+        secure:false ,  //true for 465 , false for other ports
         auth :{
             user:process.env.SMTP_USERNAME,
             pass: process.env.SMTP_PASSWORD,
@@ -20,7 +19,7 @@ const sendEmail= async function (email,subject,message){
         
     });
     
-    await transporter.sendMail({
+     await transporter.sendMail({
 
         from: process.env.SMTP_FROM_EMAIL,
         to: email,  // user email
@@ -28,6 +27,7 @@ const sendEmail= async function (email,subject,message){
         html: message, //html body
         
     })
+                
     
     
 }
@@ -35,4 +35,10 @@ const sendEmail= async function (email,subject,message){
 
 
 
+
 export default sendEmail;
+
+
+
+
+

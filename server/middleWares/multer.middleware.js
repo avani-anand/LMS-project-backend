@@ -1,4 +1,4 @@
-// we make this file for middle ware it check whenever a file is uploaded at server then it convert into binary and make and upload/give it to user.controller.js file ko and then he got it from req.file 
+// we make this file for middle ware it check whenever a file is uploaded at server then it convert  binary to image and make and upload/give it to user.controller.js file ko and then he got it from req.file 
 
 import path from "path";
 

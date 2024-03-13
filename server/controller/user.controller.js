@@ -54,7 +54,7 @@ const register =async (req,res,next)=>{
         email,
         password,
         avatar:{
-            public_id:email,
+            public_id:"adsdewrwffdssd",
             secure_url:
             'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',        },
     });
@@ -65,7 +65,7 @@ const register =async (req,res,next)=>{
     
 
 
-    //profile pic uploading
+    //PROFILE PIC UPLOADING----------
 
     //these below code run only when user uploaded a file yha hume profile  avatar ki file multer.middleware.js se milega 
 
@@ -73,7 +73,7 @@ const register =async (req,res,next)=>{
     if (req.file) {
         // console.log(req.file);   // to see file in our console
         try {
-            const result = await cloudinary.v2.uploader.upload(req.file.path,{
+            const result = await cloudinary.v2.uploader.upload(req.file.path,{    //ISKE THROUGH HUM CLOUDINARY P UPLOAD KR SKTE H
                 folder:'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
                 width:250,
                 height:250,
@@ -87,9 +87,10 @@ const register =async (req,res,next)=>{
 
                 //removing file from server ---because after uploading we remove file from server
                 
-                // fs.rm(`uploads/ ${req.file.filename}`) 
             }
-        } catch (error) {
+            fs.rm(`uploads/ ${req.file.filename}`) 
+        }
+         catch (error) {
           return next(
             new AppError(error || 'File not uploaded, please try again', 400)
           );
@@ -112,9 +113,7 @@ const register =async (req,res,next)=>{
     res.status(201).json({
         success: true,
         message:'user registered succesfully',
-        user,
-
-    });
+        user,});
 };
 
 
@@ -306,7 +305,8 @@ const resetpassword= async(req,res,next)=>{
     const {resetToken}=req.params; //sbse phle jo URL(email p jo aya tha) params m mil h vo le lenge
 
     const{ password}= req.body; //pswrd user dega body se lenge change krne k lye
-  
+    
+
     const forgotPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex') //vps se token ko encrypt krke save krenge
 
       // Check if password is not there then send response saying password is required
@@ -398,7 +398,7 @@ const changePassword =async (req,res,next)=>{
 // -----------------------------------------------------------------------------------
 /**
  * @UPDATE_USER
- * @ROUTE @POST {{URL}}/api/v1/user/update/:id
+ * @ROUTE @PUT @POST {{URL}}/api/v1/user/update/:id
  * @ACCESS Private (Logged in user only)
  */
 
