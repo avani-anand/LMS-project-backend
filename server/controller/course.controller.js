@@ -76,7 +76,6 @@ const getLectureByCourseId = async function (req,res,next) {
  */
 
 const  createCourse = async(req,res,next)=>{
-    const { id } = req.params;
 
 
     const {title,description,category,createdBy }=req.body;
@@ -113,14 +112,14 @@ const  createCourse = async(req,res,next)=>{
             
             const result = await cloudinary.v2.uploader.upload(req.file.path,{
                 folder : 'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
-                // width:250,
-                // height:250,
-                // gravity:'faces',
-                // crop:'fill'
+                width:250,
+                height:250,
+                gravity:'faces',
+                crop:'fill'
     
             })
 
-            console.log(JSON.stringify(result)) //printing the result to see in terminal
+            // console.log(JSON.stringify(result))    //printing the result to see in terminal
     // after uploading file in thumbnail we updating it in result
             if (result) {
                 course.thumbnail.public_id=result.public_id;
@@ -128,7 +127,7 @@ const  createCourse = async(req,res,next)=>{
                 
             }
          // then removing the file  from our local file uploads
-            fs.rm(`uploads / ${req.file.filename}`);
+            // fs.rm(`uploads / ${req.file.filename}`);
         }
         catch (error) {
         return next(new AppError(error.message, 500))
@@ -146,10 +145,48 @@ const  createCourse = async(req,res,next)=>{
 
 
 }
+// ------------------------------------------------------------------------------------------------------------------
 
+/**
+ * @UPDATE_COURSES_BY_ID
+ * @ROUTE @POST {{URL}}/api/v1/courses/:id
+ * @ACCESS private( admin only)
+ */
 
 
 const updateCourse = async(req,res,next)=>{
+
+try {
+    const {id}= req.params;
+
+    const course =await Course.findByIdAndUpdate(        //"findByIdAndUpdate" iss method se hum id se dudh kr aur update krenge
+        id,
+          {
+             $set:req.body  //means jo v req.body se mil rha h use override update kr do
+          },
+          {
+
+            //this check validation that new data coming is right or not it check validation through our model of course
+            runValidators:true
+
+
+          }
+    );
+    if (!course) {
+        return next('course with given id does not exist',500)
+    }
+    
+    res.status(200).json({
+        succes: true,
+        message:'course updated succesfully ........',
+        Course
+    })
+    
+} catch (e) {
+    return next(new AppError(e.message,500))
+}
+
+
 
 }
 

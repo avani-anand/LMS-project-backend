@@ -54,7 +54,7 @@ const register =async (req,res,next)=>{
         email,
         password,
         avatar:{
-            public_id:"adsdewrwffdssd",
+            public_id:email,
             secure_url:
             'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',        },
     });
