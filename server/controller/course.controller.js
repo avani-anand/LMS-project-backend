@@ -192,8 +192,38 @@ try {
 
 
 
+// ----------------------------------------------------------------------------------------------------------
+
+/**
+ * @DELETE_COURSE_BY_ID
+ * @ROUTE @DELETE {{URL}}/api/v1/courses/:id
+ * @ACCESS private( admin only)
+ */
+
+
 
 const removeCourse = async(req,res,next)=>{
+    try {
+        const {id}= req.params;
+        const course= await Course.findById(id);
+
+        if (!course) {
+            return next (new AppError('course with given id does not exist ',500))
+
+        }
+
+        await Course.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message:'course deleted succesully'
+        })
+        
+    } catch (error) {
+        return next(new AppError(e.message, 500))
+
+        
+    }
 
 }
 
