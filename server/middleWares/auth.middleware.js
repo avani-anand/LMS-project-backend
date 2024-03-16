@@ -18,4 +18,20 @@ const isLoggedIn=async(req,res,next)=>{
 
 }
 
-export default isLoggedIn;
+
+// ------------------------------------------------
+// CREATING MIDDLE WARE TO CHECK ADMIN 
+
+const authorizedRoles=(...roles)=>async(req,res,next)=>{
+    const currentUserRole=req.user.role;
+    if(!roles.includes(currentUserRole)){    //rote m jo role diye h vo yha check kr rhe h
+        return next(new AppError ('only ADMIN has permission'))
+    }
+    next();
+}
+
+export {
+    isLoggedIn, 
+    authorizedRoles
+
+} ;

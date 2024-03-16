@@ -227,8 +227,88 @@ const removeCourse = async(req,res,next)=>{
 
 }
 
+// ----------------------------------------------------------------------------------------------------------
+
+/**
+ * @ADD_LECTURE_BY_ID
+ * @ROUTE @POST {{URL}}/api/v1/courses/:id
+ * @ACCESS private( admin only)
+ */
 
 
+
+
+const addLectureCourseById= async(req,res,next)=>{
+
+
+
+    try {
+
+    const {title ,description}=req.body;
+    const{id}=req.params;
+
+    if (!title || ! description ) {
+        return next( new AppError (' title and description are required', 400))
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+        return next(new AppError ('course with given id does not exist',500))
+    }
+
+    const lectureData={
+        title,
+        description,
+        lecture:{},
+    };
+    if (req.file) {
+
+
+        try {
+            
+            const result = await cloudinary.v2.uploader.upload(req.file.path,{
+                folder : 'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
+                width:250,
+                height:250,
+                gravity:'faces',
+                crop:'fill'
+    
+            })
+
+            if (result) {
+                lectureData.lecture.public_id=result.public_id;
+                lectureData.lecture.public_id=result.secure_url;
+                
+            }
+         // then removing the file  from our local file uploads
+            // fs.rm(`uploads / ${req.file.filename}`);
+        }
+        catch (error) {
+        return next(new AppError(error.message, 500))
+
+        
+        }
+
+    }
+    course.lectures.push(lectureData)
+
+    course.numberOfLectures= course.lectures.length;
+
+    await course.save();
+
+    res.status(200).json({
+    
+        succes:true,
+        message:'lecture added to your course',
+        course,
+    })
+
+} catch (e) {
+    return next(new AppError(e.message, 500))
+
+}
+}
 
 
 
@@ -238,5 +318,6 @@ export{
     getLectureByCourseId,
     createCourse,
     updateCourse,
-    removeCourse
+    removeCourse,
+    addLectureCourseById
 }
