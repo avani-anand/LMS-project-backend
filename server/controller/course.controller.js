@@ -243,6 +243,7 @@ const addLectureCourseById= async(req,res,next)=>{
 
 
     try {
+    //    let lectureData={}
 
     const {title ,description}=req.body;
     const{id}=req.params;
@@ -266,19 +267,14 @@ const addLectureCourseById= async(req,res,next)=>{
 
 
         try {
-            
-            const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder : 'LMS-project-backend', //cloudinary m 'LMS-project-backend' file bnega usi m photos save honge
-                width:250,
-                height:250,
-                gravity:'faces',
-                crop:'fill'
-    
-            })
-
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+              folder: 'lms lectures', // Save files in a folder named lms
+              chunk_size: 50000000, // 50 mb size
+              resource_type: 'video',
+            });
             if (result) {
                 lectureData.lecture.public_id=result.public_id;
-                lectureData.lecture.public_id=result.secure_url;
+                lectureData.lecture.secure_url=result.secure_url;
                 
             }
          // then removing the file  from our local file uploads

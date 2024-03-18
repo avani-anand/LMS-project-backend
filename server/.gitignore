@@ -136,3 +136,4 @@ dist
 
 #middle ware for uploading pic
 .uploads
+.env
