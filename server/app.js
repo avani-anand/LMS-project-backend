@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 import morgan from 'morgan'
 import userRoutes  from './routes/user.routes.js'
 import courseRoutes from './routes/course.router.js'
+import paymentRoutes from './routes/payment.routes.js'
 import errorMiddleware from './middleWares/error.middleware.js';
 config();
 import AppError from './utils/error.utils.js';
@@ -32,6 +33,7 @@ app.use('/ping',function(req,res){
 
 app.use('/api/v1/user',userRoutes);  //ab iss routes p jitne v error aenge vo iss code se niche ka code (app.all) link p jaege vha dekhenge ki mai kuch ni kr skta to phir uske niche jeange  vha milega "app.use(errorMiddleware);" jisme ki hum error aae to kya show krna h vo sb define krke rkhe h
 app.use('/api/v1/courses',courseRoutes )
+app.use('/api/v1/payments',paymentRoutes)
 
 //below we are giving a route for all routes that is not defined
 app.all('*',(req,res)=>{

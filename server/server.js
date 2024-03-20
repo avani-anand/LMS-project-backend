@@ -3,6 +3,7 @@ import {config} from 'dotenv'
 import connectionToDB from './config/dbConnection.js';
 import cloudinary  from 'cloudinary';
 import { token } from 'morgan';
+import Razorpay from 'razorpay'
 config();
 
 
@@ -17,6 +18,10 @@ cloudinary.v2.config({
     api_secret: process.env.CLOUDINARY_API_SECRET ,
 });
 
+export const razorpay= new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID ,
+    key_secret:process.env.RAZORPAY_SECRET,
+})
 
 
 
